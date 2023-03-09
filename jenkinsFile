@@ -1,16 +1,16 @@
 pipeline {
-    environment {
-        GitBranch="main"
-        GitHubCredentialsId="CI-pipeline"
-        GitUrl="https://github.com/AnitaPK/taskManager.git"
+    // environment {
+    //     GitBranch="main"
+    //     GitHubCredentialsId="CI-pipeline"
+    //     GitUrl="https://github.com/AnitaPK/taskManager.git"
         
-    }
+    // }
     agent any
     stages {
         stage('Clone Application Repository') {
             steps {
-                git branch: GitBranch, credentialsId: GitHubCredentialsId, url: GitUrl
-                sh 'ls -lrt'
+                git branch: "main", credentialsId: "CI-pipeline", url: "https://github.com/AnitaPK/taskManager.git"
+                // sh 'ls -lrt'
             }
         }
     }
