@@ -222,7 +222,7 @@ pipeline
                 {
                     script 
                     {
-                        sh  'trivy image -f json -o trivy-results --exit-code 1 --severity CRITICAL,HIGH,MEDIUM,LOW taskmanager:latest' 
+                        sh  'trivy image -f json -o trivy-results.json --exit-code 1 --severity CRITICAL,HIGH,MEDIUM,LOW taskmanager:latest' 
                         archiveArtifacts allowEmptyArchive: true, artifacts: 'trivy-results.json', onlyIfSuccessful: false                       
                     }
                     
