@@ -221,14 +221,9 @@ pipeline
         {
           steps 
             {   
-                dependencyCheck additionalArguments: "--cveValidForHours 48 --disableYarnAudit --disableNodeAudit --disableNodeAudit --prettyPrint --scan $appName --format ALL ${fileExists('$appName/owasp-suppression.xml') ? "--suppression $appName/owasp-suppression.xml" : ""} --disableAssembly", odcInstallation: 'Dependency-check-v7.1.1'
+                dependencyCheck additionalArguments: "--cveValidForHours 48 --disableYarnAudit --disableNodeAudit --disableNodeAudit --prettyPrint --scan $appName --format ALL ${fileExists('$appName/owasp-suppression.xml') ? "--suppression $appName/owasp-suppression.xml" : ""} --disableAssembly", odcInstallation: 'dependency-check-v7.1.1'
                 dependencyCheckPublisher pattern: ''
                 archiveArtifacts allowEmptyArchive: true, artifacts: '**/dependency-check-report.*', onlyIfSuccessful: false
-                sh "chmod -R 755 ./dependency-check-report.json"
-                sh 'ls -lrt'
-                sh 'cp ./dependency-check-report.* $version/Build-reports'
-                sh 'cat $appName/owasp-suppression.xml'
-                sh 'cp $appName/owasp-suppression.xml $version/Build-configuration'
             }
         }
         stage('Building Application Docker Image') 
