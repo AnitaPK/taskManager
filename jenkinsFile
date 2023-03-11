@@ -235,7 +235,7 @@ pipeline
                     container('docker') 
                     {
                         sh 'ls -lrt'
-                        sh 'docker build --network=host -t $ImageRepoName:latest $AppHome/.'
+                        sh 'docker build --network=host -t $appName:latest $appName/.'
                     }
                 }
             }
@@ -248,7 +248,7 @@ pipeline
                 {
                     script 
                     {
-                        sh  'trivy image -f table -o trivy-results --exit-code 1 --severity CRITICAL,HIGH,MEDIUM,LOW $ImageRepoName:latest' 
+                        sh  'trivy image -f table -o trivy-results --exit-code 1 --severity CRITICAL,HIGH,MEDIUM,LOW $appName:latest' 
                         archiveArtifacts allowEmptyArchive: true, artifacts: 'trivy-results', onlyIfSuccessful: false                       
                     }
                     
