@@ -145,12 +145,9 @@ pipeline
                         sh 'ls -lrt '
                         sh 'hadolint $applicatonName/Dockerfile'
                         sh '''#!/bin/sh
-                            if [ "$?" -eq 1 ]; then
-                                echo "CI Job Aborting as there is vulnerability in the Dockerfile. Please check hadolint.txt file"
-                                hadolint $applicatonName/Dockerfile | tee -a hadolint_lint.txt
-                                cat hadolint_lint.txt
-                                exit 1
-
+                          echo "CI Job Aborting as there is vulnerability in the Dockerfile. Please check hadolint.txt file"
+                          hadolint $applicatonName/Dockerfile | tee -a hadolint_lint.txt
+                          cat hadolint_lint.txt
                         '''
                         archiveArtifacts allowEmptyArchive: true, artifacts: 'hadolint_lint.txt', onlyIfSuccessful: false
                     }
