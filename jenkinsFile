@@ -235,5 +235,34 @@ pipeline
                 sh 'cp $applicatonName/owasp-suppression.xml $version/Build-configuration'
             }
         }
+        stage('Building Application Docker Image') 
+        {
+            steps 
+            {   
+                script
+                {
+                    container('docker') 
+                    {
+                        sh 'ls -lrt'
+                        sh 'docker build --network=host -t $ImageRepoName:latest $AppHome/.'
+                    }
+                }
+            }
+        }
+        stage("Scanning Docker Image with Trivy")
+        {
+            steps
+            {
+                container('trivy')
+                {
+                    script 
+                    {
+                        sh  'trivy image -f table -o trivy-results --exit-code 1 --severity CRITICAL,HIGH,MEDIUM,LOW $ImageRepoName:latest' 
+                        archiveArtifacts allowEmptyArchive: true, artifacts: 'trivy-results', onlyIfSuccessful: false                       
+                    }
+                    
+                }
+            }
+        }
     }
 }
