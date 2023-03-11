@@ -1,9 +1,5 @@
 pipeline 
 { 
-    environment 
-    {  
-      SonarHome = tool name: 'sonarscanner'
-    }
     parameters 
     {
       string(name: 'appName', defaultValue : 'taskManager', description: "Applicaton Name")
@@ -42,11 +38,6 @@ pipeline
             command:
             - cat
             tty: true
-          - name: gitversion
-            image: gittools/gitversion:latest
-            command:
-            - cat
-            tty: true
           - name: trufflehog
             image: trufflesecurity/trufflehog:latest
             resources:
@@ -63,11 +54,6 @@ pipeline
             image: node:19-alpine           
             tty: true
             command: ["/bin/sh"]
-          - name: sonar
-            image: emeraldsquad/sonar-scanner:latest         
-            command:
-            - cat
-            tty: true
           - name: trivy
             image: aquasec/trivy:latest
             command:
@@ -108,7 +94,7 @@ pipeline
             }
         }
 
-        stage('Git-Secret Validation')
+        stage('Git-Secret Scanning')
         {
             steps
             {
@@ -116,24 +102,16 @@ pipeline
                 {
                     container('git-secret')
                     {
-                        sh 'echo "Security check Staretd before build"'
                         echo "Checking for any secrets stored in the repo using git-secrets"
                         sh '''#!/bin/sh
                             git-secrets --scan -r $PWD
-                            if [ "$?" -eq 1 ]; then
-                                echo "CI Job Aborting as there is Secret Stored in the Repository."
-                                exit 1
-                            else
-                                echo "No Secret found in the code"
-                                echo "Proceed for next step....."
-                            fi
                         '''
                     }
                 }
             }
         }
 
-        stage('Lint Dockerfile') 
+        stage('hadolint Scanning') 
         {
             steps 
             {
@@ -141,12 +119,8 @@ pipeline
                 {
                     container('hadolint') 
                     {
-                        sh 'ls -lrt '
-                        sh 'hadolint $appName/Dockerfile'
                         sh '''#!/bin/sh
-                          echo "CI Job Aborting as there is vulnerability in the Dockerfile. Please check hadolint.txt file"
                           hadolint $appName/Dockerfile | tee -a hadolint_lint.txt
-                          cat hadolint_lint.txt
                         '''
                         archiveArtifacts allowEmptyArchive: true, artifacts: 'hadolint_lint.txt', onlyIfSuccessful: false
                     }
@@ -172,7 +146,7 @@ pipeline
             }
         }
 
-        stage('NPM Build') 
+        stage('App Build') 
         {
             steps
             {
@@ -191,7 +165,7 @@ pipeline
             }
         }
 
-        stage('NPM Unit Test')
+        stage('Unit Test')
         {
           steps
            {
@@ -217,7 +191,7 @@ pipeline
             }
         }
 
-        stage('Dependency Check (OWASP)') 
+        stage('Dependency Check') 
         {
           steps 
             {   
@@ -226,7 +200,7 @@ pipeline
                 archiveArtifacts allowEmptyArchive: true, artifacts: '**/dependency-check-report.*', onlyIfSuccessful: false
             }
         }
-        stage('Building Application Docker Image') 
+        stage('Build Docker Image') 
         {
             steps 
             {   
@@ -235,12 +209,12 @@ pipeline
                     container('docker') 
                     {
                         sh 'ls -lrt'
-                        sh 'docker build --network=host -t $appName:latest $appName/.'
+                        sh 'docker build --network=host -t taskmanager:latest $appName/.'
                     }
                 }
             }
         }
-        stage("Scanning Docker Image with Trivy")
+        stage("Scan Docker Image")
         {
             steps
             {
@@ -248,7 +222,7 @@ pipeline
                 {
                     script 
                     {
-                        sh  'trivy image -f table -o trivy-results --exit-code 1 --severity CRITICAL,HIGH,MEDIUM,LOW $appName:latest' 
+                        sh  'trivy image -f table -o trivy-results --exit-code 1 --severity CRITICAL,HIGH,MEDIUM,LOW taskmanager:latest' 
                         archiveArtifacts allowEmptyArchive: true, artifacts: 'trivy-results', onlyIfSuccessful: false                       
                     }
                     
