@@ -6,8 +6,7 @@ pipeline
     }
     parameters 
     {
-      string(name: 'applicatonName', defaultValue : 'taskManager', description: "Applicaton Name")
-      choice(name: 'packageType', choices: 'npm\nmaven\npython\ngradle\ngo', description: 'Application Package Type')
+      string(name: 'appName', defaultValue : 'taskManager', description: "Applicaton Name")
       string(name: 'GitUrl', defaultValue : 'https://github.com/AnitaPK/taskManager.git', description: "Git repository Url")
       string(name: 'GitBranch', defaultValue : 'main', description: "Git repository branch name")
     }
@@ -143,10 +142,10 @@ pipeline
                     container('hadolint') 
                     {
                         sh 'ls -lrt '
-                        sh 'hadolint $applicatonName/Dockerfile'
+                        sh 'hadolint $appName/Dockerfile'
                         sh '''#!/bin/sh
                           echo "CI Job Aborting as there is vulnerability in the Dockerfile. Please check hadolint.txt file"
-                          hadolint $applicatonName/Dockerfile | tee -a hadolint_lint.txt
+                          hadolint $appName/Dockerfile | tee -a hadolint_lint.txt
                           cat hadolint_lint.txt
                         '''
                         archiveArtifacts allowEmptyArchive: true, artifacts: 'hadolint_lint.txt', onlyIfSuccessful: false
@@ -165,7 +164,7 @@ pipeline
                     {
                         sh 'echo "trufflehog scanning started Staretd before build"'
                         echo "Checking for any secrets stored in the repo using trufflehog"
-                        sh 'trufflehog filesystem --directory=$applicatonName --debug --json > trufflehog_report.json'
+                        sh 'trufflehog filesystem --directory=$appName --debug --json > trufflehog_report.json'
                         sh 'cat trufflehog_report.json'
                         archiveArtifacts allowEmptyArchive: true, artifacts: 'trufflehog_report.json', onlyIfSuccessful: true
                     }
@@ -182,7 +181,7 @@ pipeline
                     container('node')
                     {
                       sh '''#!/bin/sh
-                        cd $applicatonName
+                        cd $appName
                         rm yarn.lock package-lock.json
                         yarn install && yarn cache clean
                       '''
@@ -203,7 +202,7 @@ pipeline
                         try
                         {
                             sh '''#!/bin/sh
-                              cd $applicatonName
+                              cd $appName
                               yarn add nyc --dev
                               npm run coverage
                             '''
@@ -222,14 +221,14 @@ pipeline
         {
           steps 
             {   
-                dependencyCheck additionalArguments: "--cveValidForHours 48 --disableYarnAudit --disableNodeAudit --disableNodeAudit --prettyPrint --scan $applicatonName --format ALL ${fileExists('$applicatonName/owasp-suppression.xml') ? "--suppression $applicatonName/owasp-suppression.xml" : ""} --disableAssembly", odcInstallation: 'Dependency-check-v7.1.1'
+                dependencyCheck additionalArguments: "--cveValidForHours 48 --disableYarnAudit --disableNodeAudit --disableNodeAudit --prettyPrint --scan $appName --format ALL ${fileExists('$appName/owasp-suppression.xml') ? "--suppression $appName/owasp-suppression.xml" : ""} --disableAssembly", odcInstallation: 'Dependency-check-v7.1.1'
                 dependencyCheckPublisher pattern: ''
                 archiveArtifacts allowEmptyArchive: true, artifacts: '**/dependency-check-report.*', onlyIfSuccessful: false
                 sh "chmod -R 755 ./dependency-check-report.json"
                 sh 'ls -lrt'
                 sh 'cp ./dependency-check-report.* $version/Build-reports'
-                sh 'cat $applicatonName/owasp-suppression.xml'
-                sh 'cp $applicatonName/owasp-suppression.xml $version/Build-configuration'
+                sh 'cat $appName/owasp-suppression.xml'
+                sh 'cp $appName/owasp-suppression.xml $version/Build-configuration'
             }
         }
         stage('Building Application Docker Image') 
