@@ -64,7 +64,6 @@ async function getOne(id) {
   });
 }
 
-
 async function getAll(task) {
   return new Promise((resolve, reject) => {
     const connModel = mongoose.model("conn", taskModel);
@@ -77,3 +76,4 @@ module.exports = {
   getAll,
   getOne
 };
+
