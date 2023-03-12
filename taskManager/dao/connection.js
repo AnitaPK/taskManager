@@ -70,10 +70,12 @@ async function getAll(task) {
     resolve (connModel.find({}));
   });
 }
+
 module.exports = {
   createDoc,
   getData,
   getAll,
   getOne
 };
+
 
