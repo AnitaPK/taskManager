@@ -1,5 +1,5 @@
 FROM node:19-alpine
-# Create app directory
+# Create app directory to use
 WORKDIR /app
 COPY package.json /app
 RUN yarn install && yarn cache clean
@@ -7,3 +7,4 @@ RUN yarn install && yarn cache clean
 COPY . /app
 EXPOSE 8080
 CMD [ "node", "app.js" ]
+
