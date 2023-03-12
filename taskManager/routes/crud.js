@@ -18,6 +18,7 @@ router.post('/create', async(req, res) => {
     let ress = await daocreate.getAll();
     res.status(200).send(ress)
  });
+ 
 
  router.get('/get/:id', async(req, res) => {
    let ress = await daocreate.getOne(req.query.id);
@@ -25,5 +26,7 @@ router.post('/create', async(req, res) => {
 });
 
 
+
 module.exports = router;
+
 
